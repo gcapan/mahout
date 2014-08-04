@@ -30,6 +30,7 @@ import org.apache.hadoop.io.{LongWritable, Text, IntWritable, Writable}
 import scala.Some
 import scala.collection.JavaConversions._
 import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
 import org.apache.mahout.math.drm._
 import org.apache.mahout.math.drm.RLikeDrmOps._
 import org.apache.spark.rdd.RDD
@@ -115,6 +116,52 @@ object SparkEngine extends DistributedEngine {
 
   /** Broadcast support */
   def drmBroadcast(m: Matrix)(implicit dc: DistributedContext): BCast[Matrix] = dc.broadcast(m)
+
+  /**
+   * Load DRM from text file of rows of [row_id, column_id, value] triplets.
+   *
+   * @param path Path of the input
+   * @param sc spark context
+   * @param k
+   * @tparam K Type of the row key: Int, Long, and String are supported
+   * @return DRM[Any]
+   */
+  def drmFromPathAsCells[K] (path: String)
+                            (implicit sc: DistributedContext, k:ClassTag[K]): CheckpointedDrm[_] = {
+    val cellWise = sc.textFile(path)
+      .map(
+        l => {
+          val arr = l.split(",")
+          val key = k match {
+            case x if x == implicitly[ClassTag[Int]] => arr(0).toInt
+            case x if x == implicitly[ClassTag[Long]] => arr(0).toLong
+            case _ => arr(0)
+          }
+          (key, (arr(1).toInt, arr(2).toDouble))
+        })
+
+
+    new CheckpointedDrmSpark(
+      rdd = collapsed(sequential = true, rdd = cellWise),
+      _cacheStorageLevel = StorageLevel.MEMORY_ONLY
+    )
+  }
+
+  private[sparkbindings] def collapsed[K: ClassTag](sequential: Boolean, rdd: CellWiseDrmRdd[K, Coordinate]): DrmRdd[K] =
+    rdd.combineByKey(
+      (v) => scala.collection.immutable.Vector(v),
+      (acc: scala.collection.immutable.Vector[Coordinate], v) => acc :+ v,
+      (acc1:scala.collection.immutable.Vector[Coordinate], acc2:scala.collection.immutable.Vector[Coordinate]) => acc1 ++ acc2)
+      .map(
+        (row:(K, scala.collection.immutable.Vector[Coordinate])) => (row._1, vectorize(sequential, row._2)))
+
+
+  private[sparkbindings] def vectorize[K:ClassTag](sequential:Boolean = true, rowVector: scala.collection.immutable.Vector[Coordinate]): Vector = {
+    val v = if(sequential) new SequentialAccessSparseVector(rowVector.size) else new RandomAccessSparseVector(0)
+    rowVector.foreach((x: Coordinate) => v.setQuick(x._1, x._2))
+    v
+  }
+
 
   /**
    * Load DRM from hdfs (as in Mahout DRM format)

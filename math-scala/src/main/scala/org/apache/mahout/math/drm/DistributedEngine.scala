@@ -69,6 +69,8 @@ trait DistributedEngine {
    */
   def drmFromHDFS(path: String, parMin: Int = 0)(implicit sc: DistributedContext): CheckpointedDrm[_]
 
+  def drmFromPathAsCells[K] (path: String) (implicit ctx: DistributedContext, k:ClassTag[K]): CheckpointedDrm[_]
+
   /** Parallelize in-core matrix as spark distributed matrix, using row ordinal indices as data set keys. */
   def drmParallelizeWithRowIndices(m: Matrix, numPartitions: Int = 1)
       (implicit sc: DistributedContext): CheckpointedDrm[Int]

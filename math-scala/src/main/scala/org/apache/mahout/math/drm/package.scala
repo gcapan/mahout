@@ -30,6 +30,10 @@ package object drm {
   /** Drm block-wise tuple: Array of row keys and the matrix block. */
   type BlockifiedDrmTuple[K] = (Array[K], _ <: Matrix)
 
+  type Coordinate = (Int, Double)
+
+  type MatrixCell[K] = (K, Coordinate)
+
 
   /** Block-map func */
   type BlockMapFunc[S, R] = BlockifiedDrmTuple[S] => BlockifiedDrmTuple[R]
@@ -50,6 +54,8 @@ package object drm {
 
   /** Load DRM from hdfs (as in Mahout DRM format) */
   def drmFromHDFS (path: String)(implicit ctx: DistributedContext): CheckpointedDrm[_] = ctx.drmFromHDFS(path)
+
+  def drmFromPathAsCells[K] (path: String) (implicit ctx: DistributedContext, tag:ClassTag[K]): CheckpointedDrm[_] = ctx.drmFromPathAsCells(path)
 
   /** Shortcut to parallelizing matrices with indices, ignore row labels. */
   def drmParallelize(m: Matrix, numPartitions: Int = 1)
