@@ -110,20 +110,4 @@ package object drm {
             key -> v
         }
     }
-
-  private[sparkbindings] def collapsed[K: ClassTag](sequential: Boolean, rdd: CellWiseDrmRdd[K, Coordinate]): DrmRdd[K] =
-    rdd.combineByKey(
-      (v) => scala.collection.immutable.Vector(v),
-      (acc: scala.collection.immutable.Vector[Coordinate], v) => acc :+ v,
-      (acc1:scala.collection.immutable.Vector[Coordinate], acc2:scala.collection.immutable.Vector[Coordinate]) => acc1 ++ acc2)
-      .map(
-        (row:(K, scala.collection.immutable.Vector[Coordinate])) => (row._1, vectorize(sequential, row._2)))
-
-
-  private[sparkbindings] def vectorize[K:ClassTag](sequential:Boolean = true, rowVector: scala.collection.immutable.Vector[Coordinate]): Vector = {
-    val v = if(sequential) new SequentialAccessSparseVector(rowVector.size) else new RandomAccessSparseVector(0)
-    rowVector.foreach((x: Coordinate) => v.setQuick(x._1, x._2))
-    v
-  }
-
 }

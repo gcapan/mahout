@@ -45,6 +45,8 @@ package object sparkbindings {
    */
   type BlockifiedDrmRdd[K] = RDD[BlockifiedDrmTuple[K]]
 
+  type CellWiseDrmRdd[K, Coordinate] = RDD[MatrixCell[K]]
+
   /**
    * Create proper spark context that includes local Mahout jars
    * @param masterUrl
