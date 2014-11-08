@@ -48,7 +48,7 @@ private[math] object SGD {
     Random.shuffle(X.iterator().asScala).foreach(slice => {
       val i = slice.index()
       val x_i = slice.vector()
-      bCloned -= (alpha * gradient(hOfx(x_i dot bCloned), y.get(i), x_i, bCloned) + lambda * bCloned)
+      bCloned -= alpha * (gradient(hOfx(x_i dot bCloned), y.get(i), x_i, bCloned) + lambda * bCloned)
     })
 
     bCloned
@@ -63,12 +63,12 @@ private[math] object SGD {
    * @param y actual y vector, mx1
    * @param maxIterations max number of iterations for SGD
    * @param convergenceThreshold whether the algorithm is converged
-   * @param alpha learning rate, if not set 1/m
-   * @param lambda L2 penalty, if not set, 0 is default, no regularization
+   * @param alpha learning rate
+   * @param lambda (L2 penalty) regularization rate, 0 (no regularization) by default
    * @param hOfx function that calculates the corresponding y_i from X[i, :]xb
    * @param gradient given predicted y, actual y, X[i,:], and the parameters vector,
    *                 what is the gradient that would be element-wise subtracted from the current parameters vector
-   *@return
+   * @return
    */
   def minimizeWithSgd[K: ClassTag](
       X:DrmLike[K],
