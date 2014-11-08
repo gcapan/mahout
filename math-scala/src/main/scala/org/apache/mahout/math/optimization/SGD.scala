@@ -10,6 +10,7 @@ import org.apache.mahout.math.scalabindings._
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
+import scala.util.Random
 
 /**
  * @author gokhan
@@ -44,7 +45,7 @@ private[math] object SGD {
     val X = XandY(::, 0 until last-1)
     var bCloned = b.cloned
 
-    X.iterator().asScala.foreach(slice => {
+    Random.shuffle(X.iterator().asScala).foreach(slice => {
       val i = slice.index()
       val x_i = slice.vector()
       bCloned -= (alpha * gradient(hOfx(x_i dot bCloned), y.get(i), x_i, bCloned) + lambda * bCloned)
