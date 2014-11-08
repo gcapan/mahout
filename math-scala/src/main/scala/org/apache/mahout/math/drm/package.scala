@@ -22,6 +22,7 @@ import org.apache.mahout.math.drm.DistributedContext
 import org.apache.mahout.math.indexeddataset.{IndexedDataset, DefaultIndexedDatasetReadSchema, Schema}
 import org.apache.mahout.math.scalabindings.RLikeOps._
 import org.apache.mahout.math.scalabindings._
+import org.apache.mahout.math.optimization.SGD
 
 import scala.reflect.ClassTag
 
@@ -116,6 +117,24 @@ package object drm {
     }
   }
 
+  /**
+   * (Linear regression) Find argmin parameter vector of regularized squared loss function using SGD
+   * @param X (data) mxn matrix
+   * @param y (target) mx1 matrix
+   * @param maxIterations Maximum number of iterations to be performed, default 10
+   * @param convergenceThreshold Convergence criterion, if current error is less than this, the algorithm stops early
+   * @param alpha learning rate
+   * @param lambda regularization rate (L2)
+   *
+   */
+  def argmin[K: ClassTag](X: DrmLike[K], y: DrmLike[K],
+                       maxIterations:Int = 10, convergenceThreshold: Double = 0.10,
+                       alpha: Double = 0, lambda: Double = 0) :Vector = {
+    import org.apache.mahout.math.optimization._
+
+    SGD.minimizeWithSgd(X, y, maxIterations, convergenceThreshold, alpha, lambda, defaultHypothesis, defaultGradient,
+      rmse).toTuple._1
+  }
 }
 
 package object indexeddataset {
