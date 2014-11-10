@@ -1,6 +1,7 @@
 package org.apache.mahout.math.optimization
 
 import org.apache.log4j.Logger
+import org.apache.mahout.common.RandomUtils
 import org.apache.mahout.math._
 import org.apache.mahout.math.drm.RLikeDrmOps._
 import org.apache.mahout.math.drm._
@@ -81,7 +82,7 @@ private[math] object SGD {
       gradient: GradientFunction,
       error: ErrorMeasure[K]): Result = {
 
-    var b:Vector = new DenseVector(X.ncol)
+    var b:Vector = Matrices.symmetricUniformView(1, X.ncol, RandomUtils.getRandom.nextInt).viewRow(0).cloned
     var errorPerIteration: List[Double] = Nil
 
     var stop = false
