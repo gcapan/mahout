@@ -547,4 +547,20 @@ trait RLikeDrmOpsSuiteBase extends DistributedMahoutSuite with Matchers {
     (10 * drmA - (10 *: drmA)).norm shouldBe 0
 
   }
+
+  test("unaryOps") {
+    val data = Array(
+      (1, 2, 3),
+      (3, 4, 5),
+      (7, 8, 9)
+    )
+    val expd = data.map{case (i, j, k)=>(Math.exp(i), Math.exp(j), Math.exp(k))}
+    val negated = data.map{case (i, j, k)=>(-i, -j, -k)}
+    val drmA = drmParallelize(m = dense(data:_*), numPartitions = 2)
+
+    import org.apache.mahout.math.scalabindings.elementwise.Unary._
+
+    exp(drmA).zSum should equal(dense(expd:_*).zSum)
+    (- drmA).zSum should equal(dense(negated:_*).zSum)
+  }
 }
