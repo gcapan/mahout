@@ -30,7 +30,7 @@ import org.apache.mahout.math.function.DoubleFunction
 import org.apache.mahout.math.indexeddataset.{DefaultIndexedDatasetReadSchema, Schema, DefaultIndexedDatasetElementReadSchema}
 import org.apache.mahout.math.stats.LogLikelihood
 import org.apache.mahout.sparkbindings.indexeddataset.IndexedDatasetSpark
-import org.apache.mahout.math.scalabindings._
+import scalabindings._
 import RLikeOps._
 import org.apache.mahout.math.drm.logical._
 import org.apache.mahout.sparkbindings.drm.{CheckpointedDrmSpark, DrmRddInput}
@@ -98,7 +98,7 @@ object SparkEngine extends DistributedEngine {
         .map {
       case (key, v) => v dot v
     }
-      .reduce(_ + _)
+       .reduce(_ + _)
 
 
   /**
@@ -315,13 +315,13 @@ object SparkEngine extends DistributedEngine {
 
   /** Parallelize in-core matrix as spark distributed matrix, using row ordinal indices as data set keys. */
   def drmParallelizeWithRowIndices(m: Matrix, numPartitions: Int = 1)
-                                  (implicit sc: DistributedContext)
+      (implicit sc: DistributedContext)
   : CheckpointedDrm[Int] = {
     new CheckpointedDrmSpark(rdd = parallelizeInCore(m, numPartitions))
   }
 
   private[sparkbindings] def parallelizeInCore(m: Matrix, numPartitions: Int = 1)
-                                              (implicit sc: DistributedContext): DrmRdd[Int] = {
+      (implicit sc: DistributedContext): DrmRdd[Int] = {
 
     val p = (0 until m.nrow).map(i => i -> m(i, ::))
     sc.parallelize(p, numPartitions)
@@ -330,7 +330,7 @@ object SparkEngine extends DistributedEngine {
 
   /** Parallelize in-core matrix as spark distributed matrix, using row labels as a data set keys. */
   def drmParallelizeWithRowLabels(m: Matrix, numPartitions: Int = 1)
-                                 (implicit sc: DistributedContext)
+      (implicit sc: DistributedContext)
   : CheckpointedDrm[String] = {
 
     val rb = m.getRowLabelBindings
@@ -341,7 +341,7 @@ object SparkEngine extends DistributedEngine {
 
   /** This creates an empty DRM with specified number of partitions and cardinality. */
   def drmParallelizeEmpty(nrow: Int, ncol: Int, numPartitions: Int = 10)
-                         (implicit sc: DistributedContext): CheckpointedDrm[Int] = {
+      (implicit sc: DistributedContext): CheckpointedDrm[Int] = {
     val rdd = sc.parallelize(0 to numPartitions, numPartitions).flatMap(part => {
       val partNRow = (nrow - 1) / numPartitions + 1
       val partStart = partNRow * part
@@ -353,7 +353,7 @@ object SparkEngine extends DistributedEngine {
   }
 
   def drmParallelizeEmptyLong(nrow: Long, ncol: Int, numPartitions: Int = 10)
-                             (implicit sc: DistributedContext): CheckpointedDrm[Long] = {
+      (implicit sc: DistributedContext): CheckpointedDrm[Long] = {
     val rdd = sc.parallelize(0 to numPartitions, numPartitions).flatMap(part => {
       val partNRow = (nrow - 1) / numPartitions + 1
       val partStart = partNRow * part
