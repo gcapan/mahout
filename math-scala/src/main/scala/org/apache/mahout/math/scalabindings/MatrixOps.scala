@@ -126,6 +126,16 @@ class MatrixOps(val m: Matrix) {
     c
   }
 
+  def apply(rows: TraversableOnce[Int]):Matrix = {
+    var i = 0
+    val res = m.like(rows.size, m.ncol)
+    rows.foreach (r => {
+      res.assignRow(i, m.viewRow(r))
+      i += 1
+    })
+    res
+  }
+
   /**
    * Warning: This provides read-only view only.
    * In most cases that's what one wants. To get a copy,
